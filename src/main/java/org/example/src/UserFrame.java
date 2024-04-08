@@ -1,6 +1,5 @@
 package org.example.src;
 
-import com.mysql.cj.log.Log;
 import org.example.dao.GLogin;
 
 import javax.swing.*;
@@ -110,7 +109,7 @@ public class UserFrame{
         btnInsert.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new InsertItem("123456");
+                new InsertItem(inputMessage);
             }
         });
 
@@ -213,6 +212,49 @@ public class UserFrame{
         selectMonsterBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                Connection conn = null;
+                PreparedStatement stmt = null;
+                ResultSet rs = null;
+
+                try {
+                    conn = GLogin.getConnection();
+                    String sqlSearch = "SELECT monster_name,monster_lvl,monster_hp,monster_img FROM monster";
+                    stmt = conn.prepareStatement(sqlSearch);
+                    // 将变量设置到预编译的 SQL 语句中
+                    rs = stmt.executeQuery();
+
+                    // 创建表格模型
+                    DefaultTableModel tableModel = new DefaultTableModel();
+                    tableModel.addColumn("怪兽名"); // 添加列名
+                    tableModel.addColumn("怪兽等级");
+                    tableModel.addColumn("怪兽生命值");
+                    tableModel.addColumn("怪兽资讯");
+
+                    // 添加数据行
+                    while (rs.next()) {
+                        Object[] rowData = new Object[5];
+                        rowData[0] = rs.getString("monster_name");
+                        rowData[1] = rs.getString("monster_lvl");
+                        rowData[3] = rs.getString("monster_hp");
+                        rowData[4] = rs.getString("monster_img");
+                        tableModel.addRow(rowData);
+                    }
+
+                    // 创建表格并显示
+                    JTable table = new JTable(tableModel);
+                    table.setBackground(Color.PINK);
+                    table.setBorder(BorderFactory.createBevelBorder(2));
+                    JScrollPane scrollPane = new JScrollPane(table);
+                    JFrame frame = new JFrame("怪兽图鉴");
+                    frame.add(scrollPane);
+                    frame.pack();
+                    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                    frame.setVisible(true);
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                } finally {
+                    GLogin.release(conn, stmt, rs);
+                }
 
             }
 
